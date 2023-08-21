@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: depl-id
+spec:
+  acme:
+    email: lakhan.m.samani@gmail.com
+    privateKeySecretRef:
+      name: ingress-certificate
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        ingress:
+          class: nginx

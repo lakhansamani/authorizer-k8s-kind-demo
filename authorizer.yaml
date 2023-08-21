@@ -2,8 +2,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-authorizer-deployment
-  namespace: my-auth
+  name: authorizer
+  namespace: depl-id
   labels:
     app: authorizer
 spec:
@@ -20,6 +20,10 @@ spec:
       - name: authorizer
         image: lakhansamani/authorizer:latest
         imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
         env:
         - name: DATABASE_URL
           valueFrom:
@@ -29,44 +33,16 @@ spec:
         - name: DATABASE_TYPE
           value: sqlite
         - name: REDIS_URL
-          value: redis://redis.my-auth.svc.cluster.local
+          value: redis://redis.depl-id.svc.cluster.local
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-authorizer-service
-  namespace: my-auth
-  labels:
-    app: authorizer
+  name: authorizer-service
+  namespace: depl-id
 spec:
-  selector:
-    app: authorizer
-  type: ClusterIP
+  type: LoadBalancer
   ports:
   - port: 8080
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: my-authorizer-ingress
-  namespace: my-auth
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-spec:
-  defaultBackend:
-    service:
-      name: my-authorizer-service
-      port:
-        number: 8080
-  # rules:
-  # - http:
-  #     paths:
-  #     - path: /
-  #       pathType: Prefix
-  #       backend:
-  #         service:
-  #           name: my-authorizer-service
-  #           port:
-  #             number: 8080
+  selector:
+    app: authorizer
